@@ -32,7 +32,8 @@ This project uses a Logistic Regression model trained on employee attrition data
 # Screenshots
 
 ## 
-<img width="1917" height="878" alt="image" src="https://github.com/user-attachments/assets/153506af-2f14-4b3d-9669-4360a21e208b" />
+<img width="1917" height="878" alt="image" src="https://github.com/user-attachments/assets/153506af-2f14-4b3d-9669-4360a21e208b" /><br>
+
 <img width="1913" height="865" alt="image" src="https://github.com/user-attachments/assets/89ffe2a7-7ef3-4b3a-9b66-0dec25dfd6d8" />
 
 
