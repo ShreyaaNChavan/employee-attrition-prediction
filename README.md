@@ -44,7 +44,7 @@ This project uses a Logistic Regression model trained on employee attrition data
 ## Clone Repository
 
 ```bash
-git clone https://github.com/your-username/employee-attrition-prediction.git
+git clone https://github.com/ShreyaaNChavan/employee-attrition-prediction.git
 ```
 
 ## Move to Project Directory
