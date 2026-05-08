@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttritionIQ — Employee Risk Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css" </head>
+
+<body>
+
+    <div class="glow-orb glow-orb-1"></div>
+    <div class="glow-orb glow-orb-2"></div>
+
+    <div class="shell">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-mark">
+                    <div class="brand-icon">🧠</div>
+                    <div>
+                        <div class="brand-name">Attrition<span>IQ</span></div>
+                    </div>
+                </div>
+                <div class="brand-tag">HR Intelligence Platform</div>
+            </div>
+
+            <div class="nav-section">Analytics</div>
+            <a class="nav-item active" href="#">
+                <span class="nav-icon">⚡</span> Risk Predictor
+            </a>
+            <a class="nav-item" onclick="loadTab('workforce')">
+                <span class="nav-icon">📊</span> Workforce Overview
+            </a>
+            <a class="nav-item" onclick="loadTab('trend')">
+                <span class="nav-icon">📈</span> Trend Analysis
+            </a>
+
+            <div class="nav-section">Reports</div>
+            <a class="nav-item" onclick="loadTab('reports')">
+                <span class="nav-icon">📋</span> Attrition Reports
+            </a>
+            <a class="nav-item" onclick="loadTab('department')">
+                <span class="nav-icon">👥</span> Department View
+            </a>
+            <a class="nav-item" onclick="loadTab('employees')">
+                <span class="nav-icon">🗂</span> Employee Records
+            </a>
+
+            <div class="nav-section">System</div>
+            <a class="nav-item" onclick="loadTab('model')">
+                <span class="nav-icon">⚙️</span> Model Config
+            </a>
+            <a class="nav-item" onclick="loadTab('alerts')">
+                <span class="nav-icon">🔔</span> Alerts
+            </a>
+
+            <div class="sidebar-footer">
+                <div class="system-badge">
+                    <div class="pulse-dot"></div>
+                    <span>Model v2.1 · Active</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+            <header class="topbar">
+                <div class="topbar-title">Employee Risk Predictor</div>
+                <div class="topbar-meta">
+                    <span class="badge badge-purple">Logistic Regression</span>
+                    <span class="badge badge-teal">Live Model</span>
+                </div>
+            </header>
+
+            <div class="content">
+
+                <!-- Stats -->
+                <div class="stats-row">
+                    <div class="stat-card" style="--line-color: var(--accent)">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-label">Model Accuracy</div>
+                        <div class="stat-value">87.4%</div>
+                        <div class="stat-sub">On validation dataset</div>
+                    </div>
+                    <div class="stat-card" style="--line-color: var(--danger)">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-label">Avg Attrition Risk</div>
+                        <div class="stat-value">16.2%</div>
+                        <div class="stat-sub">Across all employees</div>
+                    </div>
+                    <div class="stat-card" style="--line-color: var(--accent3)">
+                        <div class="stat-icon">🔍</div>
+                        <div class="stat-label">Predictions Today</div>
+                        <div class="stat-value" id="predCount">0</div>
+                        <div class="stat-sub">This session</div>
+                    </div>
+                    <div class="stat-card" style="--line-color: var(--warning)">
+                        <div class="stat-icon">🏢</div>
+                        <div class="stat-label">Features Used</div>
+                        <div class="stat-value">9</div>
+                        <div class="stat-sub">Input dimensions</div>
+                    </div>
+                </div>
+
+                <!-- Main grid -->
+                <div class="main-grid">
+
+                    <!-- Left: Form -->
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div>
+                                <div class="panel-title">Employee Profile Input</div>
+                                <div class="panel-subtitle">Fill in employee data to generate risk assessment</div>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            <form id="attritionForm" action="/predict" method="POST">
+                                <div class="form-grid">
+
+                                    <div class="field-group">
+                                        <label class="field-label">Age</label>
+                                        <input type="number" name="Age" class="field-input" placeholder="e.g. 35"
+                                            min="18" max="65" required>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label class="field-label">Monthly Income (₹)</label>
+                                        <input type="number" name="MonthlyIncome" class="field-input"
+                                            placeholder="e.g. 50000" required>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label class="field-label">Distance From Home (km)</label>
+                                        <input type="number" name="DistanceFromHome" class="field-input"
+                                            placeholder="e.g. 12" required>
+                                    </div>
+
+                                    <div class="field-group">
+                                        <label class="field-label">Years at Company</label>
+                                        <input type="number" name="YearsAtCompany" class="field-input"
+                                            placeholder="e.g. 5" required>
+                                    </div>
+
+                                    <!-- Satisfaction sliders -->
+                                    <div class="field-group span-2">
+                                        <label class="field-label">Job Satisfaction</label>
+                                        <div class="range-group">
+                                            <div class="range-header">
+                                                <span style="font-size:12px;color:var(--text-muted)">How satisfied is
+                                                    the employee with their role?</span>
+                                                <span class="range-value" id="jobSatVal">2</span>
+                                            </div>
+                                            <input type="range" class="range-input" name="JobSatisfaction" min="1"
+                                                max="4" value="2"
+                                                oninput="document.getElementById('jobSatVal').textContent=this.value; updateSliderColor(this)">
+                                            <div class="range-labels"><span>1
+                                                    Low</span><span>2</span><span>3</span><span>4 High</span></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group span-2">
+                                        <label class="field-label">Work-Life Balance</label>
+                                        <div class="range-group">
+                                            <div class="range-header">
+                                                <span style="font-size:12px;color:var(--text-muted)">Employee's
+                                                    perceived work-life balance quality</span>
+                                                <span class="range-value" id="wlbVal">2</span>
+                                            </div>
+                                            <input type="range" class="range-input" name="WorkLifeBalance" min="1"
+                                                max="4" value="2"
+                                                oninput="document.getElementById('wlbVal').textContent=this.value; updateSliderColor(this)">
+                                            <div class="range-labels"><span>1
+                                                    Poor</span><span>2</span><span>3</span><span>4 Excellent</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="field-group span-2">
+                                        <label class="field-label">Environment Satisfaction</label>
+                                        <div class="range-group">
+                                            <div class="range-header">
+                                                <span style="font-size:12px;color:var(--text-muted)">Physical and
+                                                    psychological workplace comfort</span>
+                                                <span class="range-value" id="envSatVal">2</span>
+                                            </div>
+                                            <input type="range" class="range-input" name="EnvironmentSatisfaction"
+                                                min="1" max="4" value="2"
+                                                oninput="document.getElementById('envSatVal').textContent=this.value; updateSliderColor(this)">
+                                            <div class="range-labels"><span>1
+                                                    Low</span><span>2</span><span>3</span><span>4 High</span></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- OverTime Toggle -->
+                                    <div class="field-group">
+                                        <label class="field-label">Overtime</label>
+                                        <div class="toggle-group" id="overtimeToggle">
+                                            <button type="button" class="toggle-opt active"
+                                                onclick="setToggle('overtime','Yes',this)">Yes</button>
+                                            <button type="button" class="toggle-opt"
+                                                onclick="setToggle('overtime','No',this)">No</button>
+                                        </div>
+                                        <input type="hidden" name="OverTime" id="overtimeVal" value="Yes">
+                                    </div>
+
+                                    <!-- Gender Toggle -->
+                                    <div class="field-group">
+                                        <label class="field-label">Gender</label>
+                                        <div class="toggle-group" id="genderToggle">
+                                            <button type="button" class="toggle-opt active"
+                                                onclick="setToggle('gender','Male',this)">Male</button>
+                                            <button type="button" class="toggle-opt"
+                                                onclick="setToggle('gender','Female',this)">Female</button>
+                                        </div>
+                                        <input type="hidden" name="Gender" id="genderVal" value="Male">
+                                    </div>
+
+                                    <div class="field-group span-2" style="margin-top: 8px;">
+                                        <button type="submit" class="submit-btn" id="submitBtn">
+                                            Run Attrition Analysis →
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right: Results -->
+                    <div class="panel" id="resultPanel">
+                        {% if prediction_text %}
+                        <!-- Results will be injected by JS or shown from Flask -->
+                        <div class="panel-header">
+                            <div>
+                                <div class="panel-title">Risk Assessment</div>
+                                <div class="panel-subtitle">Prediction confidence & recommendations</div>
+                            </div>
+                        </div>
+                        <div class="panel-body result-panel">
+                            <div style="white-space:pre-wrap;font-size:14px;color:var(--text-dim);line-height:1.7;">{{
+                                prediction_text }}</div>
+                        </div>
+                        {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">🎯</div>
+                            <div class="panel-title" style="margin-bottom:8px;">No Analysis Yet</div>
+                            <div class="empty-text">Fill out the employee profile form and click<br><strong
+                                    style="color:var(--accent)">Run Attrition Analysis</strong> to see<br>risk scores
+                                and recommendations here.</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div><!-- /main-grid -->
+
+            </div><!-- /content -->
+        </main>
+
+    </div><!-- /shell -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/script.js" ></script>
+    
+
+</body>
+
+</html>
