@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import joblib
 import pandas as pd
 from flask_cors import CORS
@@ -7,129 +7,108 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Model path
-model_dir = r'C:\Users\admin\Desktop\Attrition\models'
+# -------------------------------
+# Dynamic model paths (deployment-safe)
+# -------------------------------
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Load artifacts
-model = joblib.load(os.path.join(model_dir, 'logistic_model.pkl'))
-scaler = joblib.load(os.path.join(model_dir, 'scaler.pkl'))
-columns = joblib.load(os.path.join(model_dir, 'model_columns.pkl'))
+model_path = os.path.join(BASE_DIR, "models", "logistic_model.pkl")
+scaler_path = os.path.join(BASE_DIR, "models", "scaler.pkl")
+columns_path = os.path.join(BASE_DIR, "models", "model_columns.pkl")
+
+# -------------------------------
+# Load model artifacts
+# -------------------------------
+model = joblib.load(model_path)
+scaler = joblib.load(scaler_path)
+columns = joblib.load(columns_path)
 
 
+# -------------------------------
+# Home Route
+# -------------------------------
 @app.route('/')
 def home():
     return render_template('index.html')
 
 
-@app.route('/predict', methods=['POST'])
-
-# def predict():
-
-#     # Collect form data
-#     input_data = {
-#         'Age': float(request.form['Age']),
-#         'MonthlyIncome': float(request.form['MonthlyIncome']),
-#         'DistanceFromHome': float(request.form['DistanceFromHome']),
-#         'JobSatisfaction': float(request.form['JobSatisfaction']),
-#         'WorkLifeBalance': float(request.form['WorkLifeBalance']),
-#         'EnvironmentSatisfaction': float(request.form['EnvironmentSatisfaction']),
-#         'YearsAtCompany': float(request.form['YearsAtCompany']),
-#         'OverTime_Yes': 1 if request.form['OverTime'] == 'Yes' else 0,
-#         'Gender_Male': 1 if request.form['Gender'] == 'Male' else 0
-#     }
-
-#     # DataFrame
-#     input_df = pd.DataFrame([input_data])
-
-#     # Align columns
-#     input_df = input_df.reindex(columns=columns, fill_value=0)
-
-#     # Scale
-#     input_scaled = scaler.transform(input_df)
-
-#     # Prediction
-#     prediction = model.predict(input_scaled)[0]
-
-#     # Probability
-#     prob = model.predict_proba(input_scaled)[0]
-#     stay_prob = prob[0] * 100
-#     leave_prob = prob[1] * 100
-
-#     # Recommendation logic
-#     if prediction == 1:
-#         result = f"""
-# ⚠ Employee Likely to Leave
-
-# Probability of Leaving: {leave_prob:.2f}%
-# Probability of Staying: {stay_prob:.2f}%
-
-# 💡 Recommendations:
-# - Improve job and environment satisfaction through recognition programs and better workplace conditions.
-# - Review salary and benefits to ensure competitiveness and reward loyalty.
-# - Evaluate workload distribution and introduce flexible scheduling.
-# - Conduct exit interviews to identify improvement areas.
-# """
-#     else:
-#         result = f"""
-# ✅ Employee Likely to Stay
-
-# Probability of Staying: {stay_prob:.2f}%
-# Probability of Leaving: {leave_prob:.2f}%
-
-# 💡 Recommendation:
-# - Maintain current engagement strategies and continue monitoring satisfaction levels.
-# """
-
-#     return render_template('index.html', prediction_text=result)
-
+# -------------------------------
+# Prediction Route
+# -------------------------------
 @app.route('/predict', methods=['POST'])
 def predict():
 
-    input_data = {
-        'Age': float(request.form['Age']),
-        'MonthlyIncome': float(request.form['MonthlyIncome']),
-        'DistanceFromHome': float(request.form['DistanceFromHome']),
-        'JobSatisfaction': float(request.form['JobSatisfaction']),
-        'WorkLifeBalance': float(request.form['WorkLifeBalance']),
-        'EnvironmentSatisfaction': float(request.form['EnvironmentSatisfaction']),
-        'YearsAtCompany': float(request.form['YearsAtCompany']),
-        'OverTime_Yes': 1 if request.form['OverTime'] == 'Yes' else 0,
-        'Gender_Male': 1 if request.form['Gender'] == 'Male' else 0
-    }
+    try:
+        # Collect form data
+        input_data = {
+            'Age': float(request.form['Age']),
+            'MonthlyIncome': float(request.form['MonthlyIncome']),
+            'DistanceFromHome': float(request.form['DistanceFromHome']),
+            'JobSatisfaction': float(request.form['JobSatisfaction']),
+            'WorkLifeBalance': float(request.form['WorkLifeBalance']),
+            'EnvironmentSatisfaction': float(request.form['EnvironmentSatisfaction']),
+            'YearsAtCompany': float(request.form['YearsAtCompany']),
+            'OverTime_Yes': 1 if request.form['OverTime'] == 'Yes' else 0,
+            'Gender_Male': 1 if request.form['Gender'] == 'Male' else 0
+        }
 
-    input_df = pd.DataFrame([input_data])
-    input_df = input_df.reindex(columns=columns, fill_value=0)
-    input_scaled = scaler.transform(input_df)
+        # Convert to DataFrame
+        input_df = pd.DataFrame([input_data])
 
-    prediction = model.predict(input_scaled)[0]
-    prob = model.predict_proba(input_scaled)[0]
+        # Align columns with training data
+        input_df = input_df.reindex(columns=columns, fill_value=0)
 
-    leave_prob = float(prob[1])
-    stay_prob = float(prob[0])
+        # Scale input
+        input_scaled = scaler.transform(input_df)
 
-    # recommendations
-    recs = []
+        # Prediction
+        prediction = model.predict(input_scaled)[0]
 
-    if leave_prob > 0.6:
-        recs = [
-            "Improve Job Satisfaction via recognition programs",
-            "Re-evaluate workload distribution",
-            "Conduct retention interviews",
-            "Increase compensation competitiveness"
-        ]
-    else:
-        recs = [
-            "Maintain engagement programs",
-            "Continue flexible work policies",
-            "Monitor satisfaction trends"
-        ]
+        # Probabilities
+        prob = model.predict_proba(input_scaled)[0]
 
-    return {
-        "prediction": int(prediction),
-        "leave_prob": leave_prob,
-        "stay_prob": stay_prob,
-        "recommendations": recs
-    }
+        leave_prob = round(float(prob[1]) * 100, 2)
+        stay_prob = round(float(prob[0]) * 100, 2)
 
+        # Recommendations
+        if leave_prob > 60:
+            result_text = "Employee Likely to Leave"
+
+            recommendations = [
+                "Improve Job Satisfaction through recognition programs",
+                "Review workload distribution and reduce burnout",
+                "Conduct retention interviews with employees",
+                "Improve compensation and employee benefits",
+                "Provide career growth opportunities"
+            ]
+
+        else:
+            result_text = "Employee Likely to Stay"
+
+            recommendations = [
+                "Maintain current engagement strategies",
+                "Continue employee appreciation initiatives",
+                "Monitor employee satisfaction regularly",
+                "Support flexible work-life balance policies"
+            ]
+
+        # Return JSON response
+        return jsonify({
+            "prediction": int(prediction),
+            "result": result_text,
+            "leave_probability": leave_prob,
+            "stay_probability": stay_prob,
+            "recommendations": recommendations
+        })
+
+    except Exception as e:
+        return jsonify({
+            "error": str(e)
+        })
+
+
+# -------------------------------
+# Main
+# -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
