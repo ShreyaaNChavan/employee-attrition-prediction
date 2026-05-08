@@ -32,8 +32,8 @@ function renderDashboard(data) {
 
     const isLeaving = data.prediction === 1;
 
-    const leaveProb = data.leave_probability * 100;
-    const stayProb = data.stay_probability * 100;
+    const leaveProb = data.leave_probability;
+    const stayProb = data.stay_probability ;
 
     const riskColor = isLeaving ? '#ff5e7d' : '#00d4aa';
     const riskBg = isLeaving ? 'rgba(255,94,125,0.1)' : 'rgba(0,212,170,0.1)';
